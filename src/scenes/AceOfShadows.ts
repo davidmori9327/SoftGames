@@ -29,9 +29,6 @@ export class AceOfShadows extends SceneBase {
         super(game);
     }
 
-    //---------------------------------------------------
-    // INIT
-    //---------------------------------------------------
     onCreate(): void {
         this.createTitle();
         this.createStacks();
@@ -45,9 +42,6 @@ export class AceOfShadows extends SceneBase {
 
     private layoutBound = () => this.layout();
 
-    //---------------------------------------------------
-    // TITLE
-    //---------------------------------------------------
     private createTitle() {
         this.title = new PIXI.Text("Ace of Shadows", {
             fill: ["#ff8cfb", "#d414f2", "#6b32ff"],
@@ -71,11 +65,7 @@ export class AceOfShadows extends SceneBase {
         this.container.addChild(this.subtitle);
     }
 
-    //---------------------------------------------------
-    // STACKS + BORDERS + SHADOWS + MASKS
-    //---------------------------------------------------
     private createStacks() {
-        // ----- TOP STACK -----
         this.topStack = new PIXI.Container();
         this.container.addChild(this.topStack);
 
@@ -87,12 +77,10 @@ export class AceOfShadows extends SceneBase {
         this.topShadow = this.makeShadow();
         this.container.addChild(this.topShadow);
 
-        // Mask for top stack (clips overflowing cards)
         const topMask = this.makeMask();
         this.topStack.addChild(topMask);
         this.topCards.mask = topMask;
 
-        // ----- BOTTOM STACK -----
         this.bottomStack = new PIXI.Container();
         this.container.addChild(this.bottomStack);
 
@@ -104,15 +92,11 @@ export class AceOfShadows extends SceneBase {
         this.bottomShadow = this.makeShadow();
         this.container.addChild(this.bottomShadow);
 
-        // Mask for bottom stack
         const bottomMask = this.makeMask();
         this.bottomStack.addChild(bottomMask);
         this.bottomCards.mask = bottomMask;
     }
 
-    //---------------------------------------------------
-    // BORDER SHAPE
-    //---------------------------------------------------
     private makeBorder(): PIXI.Graphics {
         const g = new PIXI.Graphics();
         g.lineStyle(4, 0xffffff, 0.9);
@@ -124,9 +108,7 @@ export class AceOfShadows extends SceneBase {
         return g;
     }
 
-    //---------------------------------------------------
-    // MASK SHAPE (SAME SIZE AS BORDER)
-    //---------------------------------------------------
+    
     private makeMask(): PIXI.Graphics {
         const m = new PIXI.Graphics();
         m.beginFill(0xffffff);
@@ -137,9 +119,7 @@ export class AceOfShadows extends SceneBase {
         return m;
     }
 
-    //---------------------------------------------------
-    // SHADOW SHAPE
-    //---------------------------------------------------
+    
     private makeShadow(): PIXI.Graphics {
         const s = new PIXI.Graphics();
         s.beginFill(0x000000, 0.25);
@@ -149,9 +129,7 @@ export class AceOfShadows extends SceneBase {
         return s;
     }
 
-    //---------------------------------------------------
-    // CREATE CARDS IN TOP STACK (HORIZONTAL LAYOUT)
-    //---------------------------------------------------
+   
     private createCards() {
         const tex = PIXI.Texture.from("assets/cards/card_back.png");
         const cardScale = 0.34;
@@ -164,7 +142,7 @@ export class AceOfShadows extends SceneBase {
                 this.cardWidth = tex.width * cardScale;
             }
 
-            // keep cards perfectly aligned
+           
             card.angle = 0;
 
             this.topCards.addChild(card);
@@ -187,9 +165,7 @@ export class AceOfShadows extends SceneBase {
         this.layoutStackCards(this.topCards, undefined, "center");
     }
 
-    //---------------------------------------------------
-    // RESPONSIVE LAYOUT
-    //---------------------------------------------------
+   
     private layout() {
         const w = window.innerWidth;
         const h = window.innerHeight;
@@ -208,11 +184,9 @@ export class AceOfShadows extends SceneBase {
         const topY = h * 0.35;
         const bottomY = h * 0.65;
 
-        // stack positions
         this.topStack.position.set(centerX, topY);
         this.bottomStack.position.set(centerX, bottomY);
 
-        // shadows under stacks
         this.topShadow.position.set(centerX, topY + 90);
         this.bottomShadow.position.set(centerX, bottomY + 90);
 
@@ -220,9 +194,6 @@ export class AceOfShadows extends SceneBase {
         this.layoutStackCards(this.bottomCards, undefined, "left");
     }
 
-    //---------------------------------------------------
-    // UPDATE LOOP (handles periodic transfers)
-    //---------------------------------------------------
     onUpdate(dt: number): void {
         this.moveClock += dt / 60;
 
@@ -232,26 +203,19 @@ export class AceOfShadows extends SceneBase {
         }
     }
 
-    //---------------------------------------------------
-    // MOVE TOP CARD FROM TOP STACK TO BOTTOM STACK
-    //---------------------------------------------------
     private moveCardTopToBottom() {
         if (this.topCards.children.length === 0) return;
 
         const card = this.topCards.children[this.topCards.children.length - 1] as PIXI.Sprite;
 
-        // global start
         const start = card.getGlobalPosition();
 
-        // remove from top stack
         this.topCards.removeChild(card);
         this.layoutStackCards(this.topCards, undefined, "center");
 
-        // temp animate in root container
         this.container.addChild(card);
         card.position.copyFrom(start);
 
-        // prepare bottom stack layout including incoming card
         const targetIndex = this.bottomCards.children.length;
         const totalAfterAdd = targetIndex + 1;
         this.layoutStackCards(this.bottomCards, totalAfterAdd, "left");
@@ -259,7 +223,6 @@ export class AceOfShadows extends SceneBase {
         const targetGlobal = this.bottomCards.toGlobal(targetLocal);
 
         this.animateCard(card, targetGlobal.x, targetGlobal.y, 2000, () => {
-            // convert to local coordinates
             const local = this.bottomCards.toLocal(new PIXI.Point(card.x, card.y));
             card.position.copyFrom(local);
 
@@ -345,9 +308,7 @@ export class AceOfShadows extends SceneBase {
         return leftBound + leftover / 2;
     }
 
-    //---------------------------------------------------
-    // ANIMATION
-    //---------------------------------------------------
+    
     private animateCard(
         card: PIXI.Sprite,
         tx: number,
@@ -364,13 +325,11 @@ export class AceOfShadows extends SceneBase {
             time += dt * 16.67;
             const t = Math.min(time / duration, 1);
 
-            // smooth cubic ease-out
             const ease = 1 - Math.pow(1 - t, 3);
 
             card.x = sx + (tx - sx) * ease;
             card.y = sy + (ty - sy) * ease;
 
-            // keep cards perfectly aligned
             card.scale.set(0.34);
             card.angle = 0;
 
@@ -384,9 +343,6 @@ export class AceOfShadows extends SceneBase {
         this.activeAnimTicks.push(tick);
     }
 
-    //---------------------------------------------------
-    // CLEANUP
-    //---------------------------------------------------
     onDestroy(): void {
         window.removeEventListener("resize", this.layoutBound);
         this.activeAnimTicks.forEach((tick) => PIXI.Ticker.shared.remove(tick));

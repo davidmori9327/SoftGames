@@ -52,7 +52,6 @@ export class Button extends PIXI.Container {
         this.eventMode = "static";
         this.cursor = "pointer";
 
-        // Layered visuals
         this.glow = new PIXI.Graphics();
         this.addChild(this.glow);
 
@@ -64,7 +63,6 @@ export class Button extends PIXI.Container {
 
         this.drawButton(false);
 
-        // Label
         const derivedColor = lightenColor(this.palette.hoverTop ?? this.palette.idleTop);
         const labelFill = typeof palette.textColor === "number"
             ? colorToHexString(palette.textColor)
@@ -84,7 +82,6 @@ export class Button extends PIXI.Container {
         this.label.y = height / 2;
         this.addChild(this.label);
 
-        // Hover + click interactions
         this.on("pointerover", () => this.onHover(true));
         this.on("pointerout", () => this.onHover(false));
         this.on("pointerdown", () => this.onClick());
@@ -112,7 +109,7 @@ export class Button extends PIXI.Container {
     }
     
     private onHover(hover: boolean) {
-        this.drawButton(hover);  // restore gradient + gloss + shadow
+        this.drawButton(hover);  
         this.scale.set(hover ? 1.08 : 1.0);
     }
 
@@ -130,7 +127,6 @@ export class Button extends PIXI.Container {
 
         const gradient = this.createVerticalGradient(topColor, bottomColor);
 
-        // soft glow behind button
         this.glow.beginFill(glowColor, hover ? 0.35 : 0.25);
         this.glow.drawRoundedRect(-pad, -pad, this._w + pad * 2, this._h + pad * 2, radius + 14);
         this.glow.endFill();
@@ -139,7 +135,6 @@ export class Button extends PIXI.Container {
         this.bg.drawRoundedRect(0, 0, this._w, this._h, radius);
         this.bg.endFill();
 
-        // neon border
         this.bg.lineStyle(4, hover ? 0xffffff : 0xcde7ff, hover ? 0.95 : 0.8);
         this.bg.drawRoundedRect(2, 2, this._w - 4, this._h - 4, radius - 6);
         this.bg.lineStyle(0);
@@ -154,19 +149,17 @@ export class Button extends PIXI.Container {
             })
         ];
 
-        // glossy highlight
         this.gloss.beginFill(0xffffff, hover ? 0.22 : 0.18);
         this.gloss.drawRoundedRect(10, 8, this._w - 20, this._h * 0.45, radius - 12);
         this.gloss.endFill();
 
-        // subtle bottom shine
         this.gloss.beginFill(0xffffff, 0.08);
         this.gloss.drawRoundedRect(12, this._h * 0.62, this._w - 24, this._h * 0.3, radius - 14);
         this.gloss.endFill();
     }
 
     private onClick() {
-        // Bouncy click effect
+
         this.scale.set(0.94);
     }
 }

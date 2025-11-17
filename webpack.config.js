@@ -34,13 +34,11 @@ module.exports = {
   },
 
   devServer: {
-    // ⭐ Serve ROOT directory so index.html loads
     static: [
       {
         directory: path.join(__dirname),
         publicPath: "/",
       },
-      // ⭐ Serve assets for Pixi
       {
         directory: path.join(__dirname, "src/assets"),
         publicPath: "/assets",

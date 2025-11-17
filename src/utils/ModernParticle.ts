@@ -8,10 +8,7 @@ import {
 
 type RGBColor = { r: number; g: number; b: number };
 
-/**
- * Modernized copy of the pixi-particles `Particle` class.
- * Rewritten with native Pixi v7 classes so it can run on ES class syntax.
- */
+
 export class ModernParticle extends PIXI.Sprite {
     public emitter: Emitter;
     public velocity = new PIXI.Point();
@@ -46,7 +43,6 @@ export class ModernParticle extends PIXI.Sprite {
         super();
         this.emitter = emitter;
         this.anchor.set(0.5);
-        // keep prototypes consistent with original implementation
         (this as any).init = this.init.bind(this);
         (this as any).update = this.update.bind(this);
         (this as any).applyArt = this.applyArt.bind(this);
@@ -246,7 +242,6 @@ export class ModernParticle extends PIXI.Sprite {
             this.parent.removeChild(this);
         }
         super.destroy(options);
-        // cleanup references
         (this as any).emitter = null;
         (this as any).velocity = null;
         (this as any).colorList = null;

@@ -4,7 +4,6 @@ import { ResizeManager } from "./utils/ResizeManager";
 import { FPSCounter } from "./utils/FPSCounter";
 
 window.onload = async () => {
-    // Create PIXI App
     const app = new PIXI.Application({
         background: "#000000",
         resizeTo: window,
@@ -19,20 +18,16 @@ window.onload = async () => {
     
     document.body.appendChild(app.view as any);
 
-    // Enable fullscreen on click
     document.body.onclick = () => {
         if (document.fullscreenElement == null) {
             document.body.requestFullscreen().catch(() => {});
         }
     };
 
-    // Resize handling
     new ResizeManager(app);
 
-    // FPS Counter
     const fps = new FPSCounter();
     app.stage.addChild(fps);
 
-    // Start the game
     new Game(app);
 };

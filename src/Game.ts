@@ -12,15 +12,12 @@ export class Game {
     constructor(app: PIXI.Application) {
         this.app = app;
 
-        // Load initial scene:
         this.changeScene(new MenuScene(this));
         window.addEventListener("keydown", this.escListener);
         document.addEventListener("fullscreenchange", this.fullscreenListener);
     }
 
-    /**
-     * Switch scenes (destroys old scene, activates new one)
-     */
+    
     public changeScene(newScene: SceneBase) {
         if (this.currentScene) {
             this.currentScene.destroy();

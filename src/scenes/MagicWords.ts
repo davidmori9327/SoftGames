@@ -147,12 +147,10 @@ export class MagicWords extends SceneBase {
         const captionColor = 0x101a4a;
         const bodyColor = 0x0b1027;
 
-        // caption area
         this.background.beginFill(captionColor);
         this.background.drawRect(0, 0, window.innerWidth, captionHeight);
         this.background.endFill();
 
-        // body area
         this.background.beginFill(bodyColor);
         this.background.drawRect(0, captionHeight, window.innerWidth, window.innerHeight - captionHeight);
         this.background.endFill();

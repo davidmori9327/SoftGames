@@ -11,4 +11,4 @@ Features:
 - Three tasks (Ace of Shadows, Magic Words, Phoenix Flame) accessible from menu
 - Responsive fullscreen canvas
 - FPS counter top-left
-- TypeScript + Pixi v7 + Vite
+- TypeScript + Pixi v7

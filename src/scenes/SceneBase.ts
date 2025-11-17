@@ -28,7 +28,9 @@ export abstract class SceneBase {
 
         // Add update ticker
         PIXI.Ticker.shared.add(this._updateBound);
+    }
 
+    public init() {
         // Let child classes build UI
         this.onCreate();
     }

@@ -1,32 +1,77 @@
 import * as PIXI from "pixi.js";
 import { DropShadowFilter } from "@pixi/filter-drop-shadow";
 
+export interface ButtonPalette {
+    idleTop: number;
+    idleBottom: number;
+    hoverTop: number;
+    hoverBottom: number;
+    glow?: number;
+    textColor?: number | string;
+}
+
+const defaultPalette: ButtonPalette = {
+    idleTop: 0x58b3ff,
+    idleBottom: 0x1650e0,
+    hoverTop: 0x8cd7ff,
+    hoverBottom: 0x1c6dff,
+};
+
+const colorToHexString = (color: number) => "#" + color.toString(16).padStart(6, "0");
+
+const lightenColor = (color: number, intensity = 0.7) => {
+    const r = (color >> 16) & 0xff;
+    const g = (color >> 8) & 0xff;
+    const b = color & 0xff;
+
+    const mix = (channel: number) =>
+        Math.min(255, Math.round(channel * (1 - intensity) + 255 * intensity));
+
+    return colorToHexString((mix(r) << 16) | (mix(g) << 8) | mix(b));
+};
+
 export class Button extends PIXI.Container {
+    private glow: PIXI.Graphics;
     private bg: PIXI.Graphics;
+    private gloss: PIXI.Graphics;
     private label: PIXI.Text;
     private _w: number;
     private _h: number;
+    private palette: ButtonPalette;
 
     public get buttonWidth() { return this._w; }
     public get buttonHeight() { return this._h; }
 
-    constructor(text: string, width = 360, height = 90) {
+    constructor(text: string, width = 360, height = 90, palette: ButtonPalette = defaultPalette) {
         super();
 
         this._w = width;
         this._h = height;
+        this.palette = palette;
 
         this.eventMode = "static";
         this.cursor = "pointer";
 
-        // Background
+        // Layered visuals
+        this.glow = new PIXI.Graphics();
+        this.addChild(this.glow);
+
         this.bg = new PIXI.Graphics();
-        this.drawButton(false);
         this.addChild(this.bg);
 
+        this.gloss = new PIXI.Graphics();
+        this.addChild(this.gloss);
+
+        this.drawButton(false);
+
         // Label
+        const derivedColor = lightenColor(this.palette.hoverTop ?? this.palette.idleTop);
+        const labelFill = typeof palette.textColor === "number"
+            ? colorToHexString(palette.textColor)
+            : palette.textColor ?? derivedColor;
+
         this.label = new PIXI.Text(text, {
-            fill: "#ffffff",
+            fill: labelFill,
             fontWeight: "bold",
             fontFamily: "Arial",
             fontSize: 32,
@@ -45,6 +90,10 @@ export class Button extends PIXI.Container {
         this.on("pointerdown", () => this.onClick());
         this.on("pointerup", () => this.onHover(true));
         this.on("pointerupoutside", () => this.onHover(false));
+    }
+
+    public getLabelText(): PIXI.Text {
+        return this.label;
     }
 
     private createVerticalGradient(colorTop: number, colorBottom: number): PIXI.Texture {
@@ -69,37 +118,51 @@ export class Button extends PIXI.Container {
 
     private drawButton(hover: boolean) {
         this.bg.clear();
+        this.glow.clear();
+        this.gloss.clear();
 
-        const radius = 28;
+        const radius = 32;
+        const pad = 10;
 
-        const topColor = hover ? 0x59b4ff : 0x2f89ff;
-        const bottomColor = hover ? 0x1f75ff : 0x1860e6;
+        const topColor = hover ? this.palette.hoverTop : this.palette.idleTop;
+        const bottomColor = hover ? this.palette.hoverBottom : this.palette.idleBottom;
+        const glowColor = this.palette.glow ?? bottomColor;
 
         const gradient = this.createVerticalGradient(topColor, bottomColor);
+
+        // soft glow behind button
+        this.glow.beginFill(glowColor, hover ? 0.35 : 0.25);
+        this.glow.drawRoundedRect(-pad, -pad, this._w + pad * 2, this._h + pad * 2, radius + 14);
+        this.glow.endFill();
 
         this.bg.beginTextureFill({ texture: gradient });
         this.bg.drawRoundedRect(0, 0, this._w, this._h, radius);
         this.bg.endFill();
 
+        // neon border
+        this.bg.lineStyle(4, hover ? 0xffffff : 0xcde7ff, hover ? 0.95 : 0.8);
+        this.bg.drawRoundedRect(2, 2, this._w - 4, this._h - 4, radius - 6);
+        this.bg.lineStyle(0);
+
         this.bg.filters = [
             new DropShadowFilter({
-                distance: 8,
-                blur: 8,
-                alpha: 0.5,
-                color: 0x000000,
-                rotation: 90
+                distance: 10,
+                blur: 12,
+                alpha: 0.6,
+                color: 0x041137,
+                rotation: 90,
             })
         ];
 
-        // remove old gloss, add a new one
-        const gloss = new PIXI.Graphics();
-        gloss.beginFill(0xffffff, 0.15);
-        gloss.drawRoundedRect(0, 0, this._w, this._h * 0.45, radius);
-        gloss.endFill();
-        gloss.y = 0;
+        // glossy highlight
+        this.gloss.beginFill(0xffffff, hover ? 0.22 : 0.18);
+        this.gloss.drawRoundedRect(10, 8, this._w - 20, this._h * 0.45, radius - 12);
+        this.gloss.endFill();
 
-        // must ensure gloss always above bg
-        this.addChild(gloss);
+        // subtle bottom shine
+        this.gloss.beginFill(0xffffff, 0.08);
+        this.gloss.drawRoundedRect(12, this._h * 0.62, this._w - 24, this._h * 0.3, radius - 14);
+        this.gloss.endFill();
     }
 
     private onClick() {

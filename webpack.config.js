@@ -7,10 +7,11 @@ module.exports = {
     filename: "bundle.js",
     path: path.resolve(__dirname, "dist"),
     clean: true,
+    publicPath: "/",
+    assetModuleFilename: "assets/[name][ext]"
   },
 
   mode: "development",
-
   devtool: "source-map",
 
   resolve: {
@@ -21,23 +22,34 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        loader: "ts-loader",
+        use: "ts-loader",
         exclude: /node_modules/,
+      },
+
+      {
+        test: /\.(png|jpg|jpeg|gif|svg)$/i,
+        type: "asset/resource",
       }
     ]
   },
 
   devServer: {
+    // ⭐ Serve ROOT directory so index.html loads
     static: [
       {
         directory: path.join(__dirname),
         publicPath: "/",
+      },
+      // ⭐ Serve assets for Pixi
+      {
+        directory: path.join(__dirname, "src/assets"),
+        publicPath: "/assets",
       }
     ],
-    historyApiFallback: true,
-    compress: true,
-    port: 8080,
+
+    historyApiFallback: { index: "/index.html" },
     hot: true,
+    port: 8080,
     open: true,
   }
 };

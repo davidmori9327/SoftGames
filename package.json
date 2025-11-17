@@ -6,7 +6,11 @@
     "build": "webpack --mode production"
   },
   "dependencies": {
+    "@pixi/filter-displacement": "^7.4.3",
     "@pixi/filter-drop-shadow": "^5.2.0",
+    "@pixi/filter-glow": "^5.2.1",
+    "@pixi/filter-kawase-blur": "^5.1.1",
+    "pixi-particles": "^4.3.1",
     "pixi.js": "^7.2.4"
   },
   "devDependencies": {

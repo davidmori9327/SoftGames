@@ -182,7 +182,7 @@ export class MagicWords extends SceneBase {
     private updateHeaderPositions() {
         if (!this.title || !this.subtitle) return;
         const w = window.innerWidth;
-        const titleY = 50;
+        const titleY = 40;
         this.title.position.set(w / 2, titleY);
         const subtitleY = titleY + this.title.height / 2 + 5 + this.subtitle.height / 2;
         this.subtitle.position.set(w / 2, subtitleY);

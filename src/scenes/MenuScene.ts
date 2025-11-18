@@ -37,6 +37,13 @@ export class MenuScene extends SceneBase {
         "Float In",
     ];
     private effectCursor = 0;
+    private readonly textEffectStaggerMs = 120;
+    private readonly buttonRevealDelayMs = 1000;
+    private readonly buttonRevealDurationMs = 750;
+    private readonly buttonRevealStartScale = 0.86;
+    private buttonRevealPlayed = false;
+    private buttonRevealTimeouts: number[] = [];
+    private buttonBaseScales = new Map<Button, { x: number; y: number }>();
 
     constructor(game: Game) {
         super(game);
@@ -208,6 +215,7 @@ export class MenuScene extends SceneBase {
         });
 
         this.playTextEffects();
+        this.playButtonReveal();
     }
 
     private playTextEffects() {
@@ -216,17 +224,13 @@ export class MenuScene extends SceneBase {
             return;
         }
 
-        targets.forEach((target) => {
-            if (!this.textEffectAssignments.has(target.text)) {
-                this.textEffectAssignments.set(target.text, this.nextEffectName());
-            }
-        });
+        this.assignButtonEffects(targets);
 
         targets.forEach((target, idx) => {
             const assignedEffect = this.textEffectAssignments.get(target.text);
             if (!assignedEffect) return;
             applyTextEffect(target.text, assignedEffect, {
-                delay: idx * 120,
+                delay: idx * this.textEffectStaggerMs,
                 bounds: target.bounds,
             });
         });
@@ -296,8 +300,126 @@ export class MenuScene extends SceneBase {
         return this.effectOrder[this.effectCursor++];
     }
 
+    private nextEffectNameExcluding(exclusions: Set<TextEffectName>): TextEffectName {
+        let effect = this.nextEffectName();
+        let attempts = 1;
+
+        while (exclusions.has(effect) && attempts <= this.effectOrder.length) {
+            effect = this.nextEffectName();
+            attempts++;
+        }
+
+        if (exclusions.has(effect)) {
+            console.warn("[MenuScene] Reusing text effect because all unique options are taken.");
+        }
+
+        return effect;
+    }
+
+    private assignButtonEffects(targets: { text: PIXI.Text }[]) {
+        const aceTarget = targets.find((t) => t.text.text === "Ace of Shadows");
+        if (aceTarget) {
+            let aceEffect = this.textEffectAssignments.get(aceTarget.text);
+            if (!aceEffect) {
+                aceEffect = this.nextEffectName();
+                this.textEffectAssignments.set(aceTarget.text, aceEffect);
+            }
+            const resolvedEffect = aceEffect;
+            targets.forEach((target) => {
+                this.textEffectAssignments.set(target.text, resolvedEffect);
+            });
+            return;
+        }
+
+        const usedEffects = new Set<TextEffectName>();
+        targets.forEach((target) => {
+            const existingEffect = this.textEffectAssignments.get(target.text);
+            if (existingEffect) {
+                usedEffects.add(existingEffect);
+            }
+        });
+
+        targets.forEach((target) => {
+            if (this.textEffectAssignments.has(target.text)) {
+                return;
+            }
+            const effect = this.nextEffectNameExcluding(usedEffects);
+            this.textEffectAssignments.set(target.text, effect);
+            usedEffects.add(effect);
+        });
+    }
+
+    private playButtonReveal() {
+        if (this.buttonRevealPlayed || this.buttons.length === 0) {
+            return;
+        }
+
+        this.buttonRevealPlayed = true;
+
+        this.buttons.forEach((btn, idx) => {
+            this.prepareButtonForReveal(btn);
+            const timeout = window.setTimeout(() => {
+                this.animateButtonReveal(btn);
+            }, idx * this.buttonRevealDelayMs);
+            this.buttonRevealTimeouts.push(timeout);
+        });
+    }
+
+    private prepareButtonForReveal(btn: Button) {
+        if (!this.buttonBaseScales.has(btn)) {
+            this.buttonBaseScales.set(btn, { x: btn.scale.x, y: btn.scale.y });
+        }
+        const base = this.buttonBaseScales.get(btn)!;
+        btn.alpha = 0;
+        btn.scale.set(base.x * this.buttonRevealStartScale, base.y * this.buttonRevealStartScale);
+    }
+
+    private animateButtonReveal(btn: Button) {
+        const base = this.buttonBaseScales.get(btn);
+        if (!base) return;
+
+        const ticker = PIXI.Ticker.shared;
+        const duration = this.buttonRevealDurationMs;
+        const startScaleX = base.x * this.buttonRevealStartScale;
+        const startScaleY = base.y * this.buttonRevealStartScale;
+        const targetScaleX = base.x;
+        const targetScaleY = base.y;
+        let elapsed = 0;
+
+        const tick = () => {
+            if (btn.destroyed || !btn.parent) {
+                ticker.remove(tick);
+                return;
+            }
+
+            elapsed += ticker.deltaMS;
+            const progress = Math.min(1, elapsed / duration);
+            const eased = this.easeOutCubic(progress);
+
+            btn.alpha = eased;
+            const scaleX = startScaleX + (targetScaleX - startScaleX) * eased;
+            const scaleY = startScaleY + (targetScaleY - startScaleY) * eased;
+            btn.scale.set(scaleX, scaleY);
+
+            if (progress >= 1) {
+                btn.alpha = 1;
+                btn.scale.set(targetScaleX, targetScaleY);
+                ticker.remove(tick);
+            }
+        };
+
+        ticker.add(tick);
+    }
+
+    private easeOutCubic(t: number) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
     onDestroy(): void {
         window.removeEventListener("resize", this.resizeHandler);
         PIXI.Ticker.shared.remove(this.animateIcons, this);
+        this.buttonRevealTimeouts.forEach((id) => window.clearTimeout(id));
+        this.buttonRevealTimeouts = [];
+        this.buttonBaseScales.clear();
     }
 }

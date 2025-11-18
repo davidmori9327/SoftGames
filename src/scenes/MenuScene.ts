@@ -60,7 +60,7 @@ export class MenuScene extends SceneBase {
     }
 
     private createBackground() {
-        const texture = PIXI.Texture.from("assets/background.png");
+        const texture = PIXI.Texture.from("../assets/background.png");
         this.bgSprite = new PIXI.Sprite(texture);
         this.bgSprite.alpha = 0.8;
         this.bgSprite.anchor.set(0.5);
